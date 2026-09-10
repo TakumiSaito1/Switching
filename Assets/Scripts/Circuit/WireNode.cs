@@ -18,8 +18,9 @@ public class WireNode : CircuitNode
     [SerializeField] private float armLength = 0.5f;
     [SerializeField] private float armThickness = 0.18f;
     [SerializeField] private float visualHeight = 0.06f;
-    [SerializeField] private Color poweredColor = Color.red;
-    [SerializeField] private Color unpoweredColor = new Color(0.3f, 0f, 0f);
+    [SerializeField] private Color poweredColor = new Color(0.25f, 0.85f, 1f);
+    [SerializeField] private Color unpoweredColor = new Color(0.18f, 0.24f, 0.28f);
+    [SerializeField, Min(0f)] private float poweredEmissionIntensity = 2.5f;
 
     private readonly List<Renderer> visualRenderers = new List<Renderer>();
     private Transform visualRoot;
@@ -215,7 +216,22 @@ public class WireNode : CircuitNode
         {
             if (visualRenderer != null)
             {
-                visualRenderer.material.color = color;
+                Material material = visualRenderer.material;
+                material.color = color;
+
+                if (material.HasProperty("_BaseColor"))
+                {
+                    material.SetColor("_BaseColor", color);
+                }
+
+                if (material.HasProperty("_EmissionColor"))
+                {
+                    material.EnableKeyword("_EMISSION");
+                    material.SetColor(
+                        "_EmissionColor",
+                        powered ? color * poweredEmissionIntensity : Color.black
+                    );
+                }
             }
         }
     }

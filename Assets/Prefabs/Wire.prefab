@@ -139,5 +139,6 @@ MonoBehaviour:
   armLength: 0.5
   armThickness: 0.18
   visualHeight: 0.06
-  poweredColor: {r: 1, g: 0, b: 0, a: 1}
-  unpoweredColor: {r: 0.3, g: 0, b: 0, a: 1}
+  poweredColor: {r: 0.25, g: 0.85, b: 1, a: 1}
+  unpoweredColor: {r: 0.18, g: 0.24, b: 0.28, a: 1}
+  poweredEmissionIntensity: 2.5
