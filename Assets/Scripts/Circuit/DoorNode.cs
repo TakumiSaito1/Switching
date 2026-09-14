@@ -138,6 +138,12 @@ public class DoorNode : CircuitNode
         if (hasInitializedPowerState)
         {
             GameSfx.PlayAt("sfx_door_open_lowpoly", transform.position, 0.8f);
+
+            if (powered)
+            {
+                PowerActivationEffect.Play(transform.position + Vector3.up * 0.8f);
+                CameraManager.GetOrCreateMainCameraManager()?.Shake();
+            }
         }
 
         hasInitializedPowerState = true;
