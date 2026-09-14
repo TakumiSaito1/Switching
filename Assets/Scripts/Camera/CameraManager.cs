@@ -13,6 +13,9 @@ public class CameraManager : MonoBehaviour
 
     private float currentYaw;
     private float targetYaw;
+    private float shakeTimeRemaining;
+    private float shakeDuration;
+    private float shakeStrength;
 
     private void Awake()
     {
@@ -62,8 +65,23 @@ public class CameraManager : MonoBehaviour
         var offset = rotation * new Vector3(0f, height, -distance);
         var focusPosition = focus != null ? focus.position : Vector3.zero;
 
-        transform.position = focusPosition + offset;
+        Vector3 shakeOffset = Vector3.zero;
+        if (shakeTimeRemaining > 0f)
+        {
+            shakeTimeRemaining = Mathf.Max(0f, shakeTimeRemaining - Time.unscaledDeltaTime);
+            float fade = shakeDuration > 0f ? shakeTimeRemaining / shakeDuration : 0f;
+            shakeOffset = Random.insideUnitSphere * (shakeStrength * fade);
+        }
+
+        transform.position = focusPosition + offset + shakeOffset;
         transform.rotation = rotation;
+    }
+
+    public void Shake(float duration = 0.18f, float strength = 0.09f)
+    {
+        shakeDuration = Mathf.Max(shakeDuration, duration);
+        shakeTimeRemaining = Mathf.Max(shakeTimeRemaining, duration);
+        shakeStrength = Mathf.Max(shakeStrength, strength);
     }
 
     public void RotateLeft()

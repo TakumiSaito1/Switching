@@ -16,6 +16,7 @@ public class PoweredBridgeNode : MonoBehaviour
     private Vector3 targetLocalPosition;
     private Renderer[] bridgeRenderers;
     private bool isPowered;
+    private bool hasInitializedPowerState;
 
     private void Start()
     {
@@ -58,6 +59,16 @@ public class PoweredBridgeNode : MonoBehaviour
         isPowered = powered;
         targetLocalPosition = powered ? poweredLocalPosition : unpoweredLocalPosition;
         ApplyColor(powered);
+
+        if (hasInitializedPowerState && powered)
+        {
+            Vector3 effectPosition = bridgeBody != null ? bridgeBody.position : transform.position;
+            GameSfx.PlayAt("sfx_door_open_lowpoly", effectPosition, 0.65f);
+            PowerActivationEffect.Play(effectPosition);
+            CameraManager.GetOrCreateMainCameraManager()?.Shake(0.16f, 0.07f);
+        }
+
+        hasInitializedPowerState = true;
     }
 
     private void ApplyColor(bool powered)

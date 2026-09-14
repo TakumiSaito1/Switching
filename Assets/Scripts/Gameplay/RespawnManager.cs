@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class RespawnManager : MonoBehaviour
 {
@@ -7,14 +7,17 @@ public class RespawnManager : MonoBehaviour
     [SerializeField] private Transform respawnPoint;
     [SerializeField] private float fallY = -10f;
     [SerializeField] private string boxTag = "Box";
-    [SerializeField] private string stageSelectSceneName = "StageSelectScene";
-
-    [Header("Game Over")]
-    [SerializeField] private UnityEvent onGameOver;
 
     private Rigidbody playerRigidbody;
-    private GameObject[] boxes;
-    private bool isGameOver = false;
+    private readonly List<BoxRespawnState> boxes = new List<BoxRespawnState>();
+
+    private sealed class BoxRespawnState
+    {
+        public GameObject Box;
+        public Rigidbody Rigidbody;
+        public Vector3 Position;
+        public Quaternion Rotation;
+    }
 
     private void Awake()
     {
@@ -26,32 +29,30 @@ public class RespawnManager : MonoBehaviour
 
     private void Start()
     {
-        boxes = GameObject.FindGameObjectsWithTag(boxTag);
+        foreach (GameObject box in GameObject.FindGameObjectsWithTag(boxTag))
+        {
+            boxes.Add(new BoxRespawnState
+            {
+                Box = box,
+                Rigidbody = box.GetComponent<Rigidbody>(),
+                Position = box.transform.position,
+                Rotation = box.transform.rotation
+            });
+        }
     }
 
     private void Update()
     {
-        if (isGameOver)
-        {
-            return;
-        }
-
         if (player != null && respawnPoint != null && player.position.y < fallY)
         {
             Respawn();
         }
 
-        if (boxes == null)
+        foreach (BoxRespawnState boxState in boxes)
         {
-            return;
-        }
-
-        foreach (GameObject box in boxes)
-        {
-            if (box != null && box.transform.position.y < fallY)
+            if (boxState.Box != null && boxState.Box.transform.position.y < fallY)
             {
-                GameOver();
-                break;
+                RespawnBox(boxState);
             }
         }
     }
@@ -77,13 +78,21 @@ public class RespawnManager : MonoBehaviour
         Respawn();
     }
 
-    private void GameOver()
+    private void RespawnBox(BoxRespawnState boxState)
     {
-        isGameOver = true;
-        Debug.Log("A box fell out of the stage. Game Over.");
+        Transform boxTransform = boxState.Box.transform;
+        boxTransform.SetParent(null, true);
+        boxTransform.SetPositionAndRotation(boxState.Position, boxState.Rotation);
 
-        onGameOver?.Invoke();
-        GameSfx.Play("sfx_game_over_lowpoly");
-        GameOverMenu.Show(stageSelectSceneName);
+        if (boxState.Rigidbody != null)
+        {
+            boxState.Rigidbody.linearVelocity = Vector3.zero;
+            boxState.Rigidbody.angularVelocity = Vector3.zero;
+            boxState.Rigidbody.Sleep();
+        }
+
+        Physics.SyncTransforms();
+        Debug.Log("A box returned to its starting position.", boxState.Box);
     }
+
 }
